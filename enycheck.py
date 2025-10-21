@@ -385,5 +385,30 @@ async def main():
     load_data()
     await dp.start_polling(bot)
 
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+PORT = int(os.environ.get("PORT", "8000"))
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"OK - bot is running")
+
+    def log_message(self, format, *args):
+        return
+
+def _run_http():
+    server = HTTPServer(("0.0.0.0", PORT), _HealthHandler)
+    try:
+        server.serve_forever()
+    except Exception:
+        pass
+
+threading.Thread(target=_run_http, daemon=True).start()
+
+
 if __name__ == "__main__":
     asyncio.run(main())
