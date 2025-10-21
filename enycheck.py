@@ -8,7 +8,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
 
 # === Конфігурація ===
-TOKEN = os.environ.get("BOT_TOKEN", "8308954991:AAHHxvfa7MNIenH9L3xPG4jE7D9k9n0QA")
+TOKEN = os.environ.get("BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError("❌ BOT_TOKEN не заданий у середовищі Render!")
+
 ADMINS = [955218726]
 
 STUDENTS_FILE = "students.json"
@@ -62,7 +65,7 @@ def main_menu(user_id: int):
     if user_id in ADMINS:
         builder.button(text="📃 Внести зміни в розклад", callback_data="upload_schedule")
         builder.button(text="🔔 Змінити розклад дзвінків", callback_data="update_bells")
-    builder.adjust(1, 1, 2, 1, 1)  # кожна кнопка в окремому рядку
+    builder.adjust(1)  # всі кнопки в окремому рядку
     return builder.as_markup()
 
 def class_buttons():
@@ -155,6 +158,7 @@ async def start_webserver():
 # ======== Головна функція ========
 async def main():
     load_data()
+    # одночасно вебсервер і polling
     await asyncio.gather(
         dp.start_polling(bot),
         start_webserver()
