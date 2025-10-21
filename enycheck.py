@@ -8,8 +8,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
 
 # === Конфігурація ===
-TOKEN = "8308954991:AAHHxvfa7MNIenH9L3xPG4jE7D9k9k2n0QA"
+TOKEN = os.environ.get("BOT_TOKEN", "8308954991:AAHHxvfa7MNIenH9L3xPG4jE7D9k9n0QA")
 ADMINS = [955218726]
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://enycheckbot.onrender.com/")  # URL твого Render сервісу
 
 STUDENTS_FILE = "students.json"
 SCHEDULE_FILE = "schedule.json"
@@ -23,7 +24,7 @@ students = {}
 schedule = {}
 bells = {}
 dp_state = {
-    "awaiting_file_for": None,   # "all" або клас як рядок
+    "awaiting_file_for": None,
     "awaiting_bells_file": False
 }
 
@@ -62,7 +63,7 @@ def main_menu(user_id: int):
     if user_id in ADMINS:
         builder.button(text="📃 Внести зміни в розклад", callback_data="upload_schedule")
         builder.button(text="🔔 Змінити розклад дзвінків", callback_data="update_bells")
-    builder.adjust(1)  # всі кнопки в окремому рядку
+    builder.adjust(1)
     return builder.as_markup()
 
 def class_buttons():
@@ -138,13 +139,18 @@ async def class_choice(callback: types.CallbackQuery):
     save_data()
     await callback.message.edit_text(f"✅ Твій клас встановлено: {cls}", reply_markup=main_menu(callback.from_user.id))
 
-# ======== Webserver для Render ========
+# ======== Webhook handler для Telegram ========
 async def handle(request):
+    if request.method == "POST":
+        data = await request.json()
+        update = types.Update(**data)
+        await dp.process_update(update)
+        return web.Response()
     return web.Response(text="OK - Bot is running!")
 
 async def start_webserver():
     app = web.Application()
-    app.router.add_get("/", handle)
+    app.router.add_post("/", handle)  # обробка POST від Telegram
     port = int(os.environ.get("PORT", 10000))
     runner = web.AppRunner(app)
     await runner.setup()
@@ -155,12 +161,14 @@ async def start_webserver():
 # ======== Головна функція ========
 async def main():
     load_data()
-    # одночасно вебсервер і polling
-    await asyncio.gather(
-        dp.start_polling(bot),
-        start_webserver()
-    )
+    # Видаляємо старий webhook і встановлюємо новий
+    await bot.delete_webhook()
+    await bot.set_webhook(WEBHOOK_URL)
+    # Запускаємо тільки вебсервер
+    await start_webserver()
+    # Бот тепер обробляє апдейти через webhook
+    while True:
+        await asyncio.sleep(3600)  # просто тримаємо цикл живим
 
 if __name__ == "__main__":
     asyncio.run(main())
-
