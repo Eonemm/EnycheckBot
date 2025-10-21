@@ -8,7 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
 
 # === Конфігурація ===
-TOKEN = os.environ.get("BOT_TOKEN", "8308954991:AAHHxvfa7MNIenH9L3xPG4jE7D9k9n0QA")
+TOKEN = "8308954991:AAHHxvfa7MNIenH9L3xPG4jE7D9k9k2n0QA"
 ADMINS = [955218726]
 
 STUDENTS_FILE = "students.json"
@@ -162,3 +162,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
