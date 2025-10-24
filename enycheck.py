@@ -209,7 +209,7 @@ async def today_schedule(callback: types.CallbackQuery):
         return
 
     cls = students[user_id]["class"] if user_id in students else None
-    weekdays = ["Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота", "Неділя"]
+    weekdays = ["Понеділок", "Вівторок", "Середа", "Четвер", "П’ятниця", "Субота", "Неділя"]
     today = weekdays[datetime.today().weekday()]
 
     if cls:
@@ -412,3 +412,4 @@ threading.Thread(target=_run_http, daemon=True).start()
 
 if __name__ == "__main__":
     asyncio.run(main())
+
